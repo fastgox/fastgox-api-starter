@@ -10,12 +10,12 @@ app:
     scheme: "http" # 开发环境使用 http
     base_path: "/goapi/v1"
 
-# 数据库配置 - PostgreSQL
+# 数据库配置 - MySQL
 database:
   driver: "mysql"
   host: "localhost"
-  port: 5432
-  user: "postgres"
+  port: 3306
+  user: "root"
   password: "password"
   dbname: "fastgox-api-starter"
   sslmode: "disable"

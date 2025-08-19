@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	gormlogger "gorm.io/gorm/logger"
@@ -36,8 +37,19 @@ func NewConnection(config *Config) (*gorm.DB, error) {
 		return nil, fmt.Errorf("配置验证失败: %w", err)
 	}
 
+	// 根据数据库类型选择驱动
+	var dialector gorm.Dialector
+	switch config.Driver {
+	case "mysql":
+		dialector = mysql.Open(config.DSN())
+	case "postgres", "postgresql":
+		dialector = postgres.Open(config.DSN())
+	default:
+		return nil, fmt.Errorf("不支持的数据库类型: %s", config.Driver)
+	}
+
 	// 连接数据库
-	db, err := gorm.Open(postgres.Open(config.DSN()), &gorm.Config{
+	db, err := gorm.Open(dialector, &gorm.Config{
 		Logger: gormlogger.Default.LogMode(getLogLevel(config.LogLevel)),
 	})
 	if err != nil {

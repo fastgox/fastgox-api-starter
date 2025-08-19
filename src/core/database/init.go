@@ -28,6 +28,7 @@ func Initialize() (*gorm.DB, error) {
 		}
 
 		dbConfig := &Config{
+			Driver:      config.GlobalConfig.Database.Driver,
 			Host:        config.GlobalConfig.Database.Host,
 			Port:        config.GlobalConfig.Database.Port,
 			User:        config.GlobalConfig.Database.User,

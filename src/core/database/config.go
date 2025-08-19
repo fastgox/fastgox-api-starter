@@ -2,6 +2,7 @@ package database
 
 // Config 数据库配置结构
 type Config struct {
+	Driver      string `json:"driver" yaml:"driver"`
 	Host        string `json:"host" yaml:"host"`
 	Port        int    `json:"port" yaml:"port"`
 	User        string `json:"user" yaml:"user"`
@@ -17,6 +18,7 @@ type Config struct {
 // DefaultConfig 返回默认配置
 func DefaultConfig() *Config {
 	return &Config{
+		Driver:      "postgres",
 		Host:        "localhost",
 		Port:        5432,
 		User:        "postgres",
@@ -55,5 +57,13 @@ func (c *Config) Validate() error {
 
 // DSN 获取数据库连接字符串
 func (c *Config) DSN() string {
-	return formatDSN(c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode, c.Timezone)
+	switch c.Driver {
+	case "mysql":
+		return formatMySQLDSN(c.Host, c.Port, c.User, c.Password, c.DBName, c.Timezone)
+	case "postgres", "postgresql":
+		return formatPostgresDSN(c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode, c.Timezone)
+	default:
+		// 默认使用PostgreSQL格式
+		return formatPostgresDSN(c.Host, c.Port, c.User, c.Password, c.DBName, c.SSLMode, c.Timezone)
+	}
 }
