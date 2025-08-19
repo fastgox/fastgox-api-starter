@@ -19,22 +19,10 @@ type Server struct {
 
 // NewServer 创建新的服务器实例
 func NewServer() (*Server, error) {
+	logger.InitWithPath("data/logs")
 	logger.Info("创建服务器实例..")
 
 	server := &Server{}
-
-	// 初始化配置
-	if err := config.InitializeConfig(); err != nil {
-		return nil, fmt.Errorf("配置初始化失败: %w", err)
-	}
-
-	// 初始化日志
-	if err := config.InitializeLogger(); err != nil {
-		logger.Error("日志系统初始化失败，继续使用默认日志:", err)
-	}
-
-	// 初始化数据库（这里需要实现数据库连接逻辑）
-	//initDatabase()
 
 	// 创建HTTP服务器
 	addr := fmt.Sprintf(":%d", config.GlobalConfig.App.Port)

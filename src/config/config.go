@@ -10,7 +10,7 @@ import (
 // 全局配置实例
 var GlobalConfig *Config
 
-// InitConfig 初始化配置?
+// InitConfig 初始化配置
 func InitConfig() error {
 	// 设置环境
 	env := os.Getenv("APP_ENV")

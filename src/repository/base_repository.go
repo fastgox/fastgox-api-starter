@@ -3,6 +3,9 @@ package repository
 import (
 	"time"
 
+	"github.com/fastgox/fastgox-api-starter/src/core/database"
+	"github.com/fastgox/fastgox-api-starter/src/models/entity"
+	"github.com/fastgox/utils/logger"
 	"gorm.io/gorm"
 )
 
@@ -25,18 +28,27 @@ func InitGlobalDB(db *gorm.DB) {
 	GlobalDB = db
 }
 
-// RegisterRepo 注册仓储
-func RegisterRepo(name string, factory RepoFactory) {
-	repoFactories[name] = factory
-}
+// initDatabase 内部初始化数据库函数
+func initDatabase() {
+	logger.Info("初始化数据库...")
 
-// CreateAllRepos 创建所有注册的仓储
-func CreateAllRepos(db *gorm.DB) map[string]interface{} {
-	repos := make(map[string]interface{})
-	for name, factory := range repoFactories {
-		repos[name] = factory(db)
+	// 初始化数据库连接
+	db, err := database.Initialize()
+	if err != nil {
+		logger.Error("数据库初始化失败: ", err)
+		panic(err)
 	}
-	return repos
+
+	// 设置全局数据库实例
+	GlobalDB = db
+
+	// 自动迁移表结构
+	if err := database.AutoMigrate(&entity.User{}); err != nil {
+		logger.Error("数据库表结构迁移失败: ", err)
+		panic(err)
+	}
+
+	logger.Info("数据库初始化完成")
 }
 
 // BaseRepository 基础仓储实现，提供通用的CRUD操作
@@ -52,7 +64,7 @@ func NewBaseRepository[T Entity]() *BaseRepository[T] {
 // GetRepository 获取仓储实例的泛型函数
 func GetRepository[T Entity]() *BaseRepository[T] {
 	if GlobalDB == nil {
-		panic("GlobalDB not initialized. Call InitGlobalDB first.")
+		initDatabase()
 	}
 	return &BaseRepository[T]{DB: GlobalDB}
 }

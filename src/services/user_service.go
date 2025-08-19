@@ -10,7 +10,9 @@ type UserService struct {
 	UserRepo *repository.UserRepository
 }
 
-var UserSvc = &UserService{UserRepo: repository.UserRepo}
+var UserSvc *UserService = &UserService{UserRepo: repository.UserRepo}
+
+// GetUserSvc 获取用户服务实例
 
 // GetUserByEmail 根据邮箱获取用户
 func (s *UserService) GetUserByEmail(email string) (*entity.User, error) {
