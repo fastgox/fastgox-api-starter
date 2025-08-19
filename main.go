@@ -25,6 +25,8 @@ func main() {
 		formatCode()
 	case "tidy":
 		tidyDeps()
+	case "swagger":
+		generateSwagger()
 	case "help":
 		showHelp()
 	default:
@@ -93,6 +95,18 @@ func tidyDeps() {
 	fmt.Println("依赖整理完成!")
 }
 
+func generateSwagger() {
+	fmt.Println("生成 Swagger 文档...")
+	cmd := exec.Command("swag", "init", "-g", "cmd/server/main.go", "-o", "docs")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Printf("Swagger 文档生成失败: %v\n", err)
+		os.Exit(1)
+	}
+	fmt.Println("Swagger 文档已生成到 docs 目录")
+}
+
 func showHelp() {
 	fmt.Println("fastgox-api-starter API 开发工具")
 	fmt.Println()
@@ -104,6 +118,7 @@ func showHelp() {
 	fmt.Println("  clean    - 清理构建文件")
 	fmt.Println("  fmt      - 格式化代码")
 	fmt.Println("  tidy     - 整理Go依赖")
+	fmt.Println("  swagger  - 生成 Swagger 文档到 docs 目录")
 	fmt.Println("  help     - 显示帮助")
 	fmt.Println()
 	fmt.Println("示例:")
