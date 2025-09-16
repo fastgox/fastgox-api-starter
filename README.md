@@ -39,14 +39,37 @@
 go mod tidy
 ```
 
-### 2. 启动开发服务器
+### 2. 安装go-task（可选，推荐）
 ```bash
+go install github.com/go-task/task/v3/cmd/task@latest
+```
+
+### 3. 启动开发服务器
+```bash
+# 使用go-task（推荐）
+task dev
+
+# 或使用传统方式
 go run main.go dev
 ```
 
-### 3. 构建项目
+### 4. 构建项目
 ```bash
+# 使用go-task
+task build
+
+# 或使用传统方式
 go run main.go build
+```
+
+### 5. 运行API测试
+```bash
+# 启动服务器
+task dev
+
+# 在另一个终端运行测试
+cd test
+task test-simple
 ```
 
 ## 设计理念

@@ -1,19 +1,595 @@
 {
     "swagger": "2.0",
     "info": {
-        "description": "fastgox-api-starter AI聊天服务API",
-        "title": "fastgox-api-starter API",
-        "contact": {},
-        "version": "1.0"
+        "contact": {}
     },
-    "basePath": "/api/v1",
-    "paths": {},
-    "securityDefinitions": {
-        "BearerAuth": {
-            "description": "Type \"Bearer\" followed by a space and JWT token.",
-            "type": "apiKey",
-            "name": "Authorization",
-            "in": "header"
+    "paths": {
+        "/ad-conversion/create": {
+            "post": {
+                "description": "记录用户的广告转化行为，包括首次打开app、注册、留资等",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "广告转化"
+                ],
+                "summary": "创建广告转化记录",
+                "parameters": [
+                    {
+                        "description": "广告转化记录请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.CreateAdConversionRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "创建成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.AdConversionResponse"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "创建失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/identity-verification": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "通过姓名和身份证号，结合token中的手机号进行三要素认证",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "身份认证"
+                ],
+                "summary": "三要素认证",
+                "parameters": [
+                    {
+                        "description": "认证请求参数，包含姓名和身份证号",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.ThreeElementsVerifyRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "认证成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "认证失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login-with-sms": {
+            "post": {
+                "description": "使用手机号和验证码登录，不存在账户时自动注册",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "短信验证码登录",
+                "parameters": [
+                    {
+                        "description": "登录请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.LoginWithSmsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "登录成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "登录失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/send-login-sms": {
+            "post": {
+                "description": "向指定手机号发送登录验证码",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "用户认证"
+                ],
+                "summary": "发送登录短信验证码",
+                "parameters": [
+                    {
+                        "description": "发送短信请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.SendLoginSmsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "发送成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "发送失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/file/upload/single": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "上传单个文件",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "文件上传"
+                ],
+                "summary": "单文件上传",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "上传的文件",
+                        "name": "file",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "上传成功",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/dto.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/response.FileUploadResult"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "请求参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "未授权",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "服务器错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/ocr/idcard": {
+            "post": {
+                "description": "使用阿里云OCR识别身份证信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "OCR"
+                ],
+                "summary": "身份证识别",
+                "parameters": [
+                    {
+                        "description": "识别请求参数",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/request.RecognizeIdCardRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "识别成功",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "参数错误",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "识别失败",
+                        "schema": {
+                            "$ref": "#/definitions/dto.Response"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.Response": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "data": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "file.FileOutput": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "description": "响应代码",
+                    "type": "string"
+                },
+                "cost_time": {
+                    "description": "耗时（毫秒）",
+                    "type": "integer"
+                },
+                "file_ext": {
+                    "description": "文件扩展名",
+                    "type": "string"
+                },
+                "file_name": {
+                    "description": "原始文件名",
+                    "type": "string"
+                },
+                "file_path": {
+                    "description": "文件相对路径",
+                    "type": "string"
+                },
+                "file_size": {
+                    "description": "文件大小",
+                    "type": "integer"
+                },
+                "file_url": {
+                    "description": "文件访问URL",
+                    "type": "string"
+                },
+                "message": {
+                    "description": "响应消息",
+                    "type": "string"
+                },
+                "provider": {
+                    "description": "服务提供商名称",
+                    "type": "string"
+                },
+                "request_id": {
+                    "description": "请求ID",
+                    "type": "string"
+                },
+                "saved_name": {
+                    "description": "保存的文件名",
+                    "type": "string"
+                },
+                "success": {
+                    "description": "操作是否成功",
+                    "type": "boolean"
+                },
+                "timestamp": {
+                    "description": "响应时间戳",
+                    "type": "string"
+                },
+                "upload_time": {
+                    "description": "上传时间",
+                    "type": "string"
+                }
+            }
+        },
+        "request.CreateAdConversionRequest": {
+            "type": "object",
+            "required": [
+                "channel_code",
+                "conversion_type"
+            ],
+            "properties": {
+                "ad_id": {
+                    "description": "广告ID（可选，Android无真实广告ID时为空）",
+                    "type": "string"
+                },
+                "channel_code": {
+                    "description": "渠道代码",
+                    "type": "string"
+                },
+                "conversion_type": {
+                    "description": "转化类型:1=首次打开app,2=注册,3=实名,4=留资",
+                    "type": "integer",
+                    "maximum": 4,
+                    "minimum": 1
+                },
+                "device_id": {
+                    "description": "设备ID",
+                    "type": "string"
+                },
+                "medium": {
+                    "description": "媒介类型 广告/搜索",
+                    "type": "string"
+                },
+                "platform": {
+                    "description": "平台来源 ios/android",
+                    "type": "string"
+                }
+            }
+        },
+        "request.LoginWithSmsRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "phone"
+            ],
+            "properties": {
+                "code": {
+                    "description": "验证码",
+                    "type": "string"
+                },
+                "phone": {
+                    "description": "手机号",
+                    "type": "string"
+                }
+            }
+        },
+        "request.RecognizeIdCardRequest": {
+            "type": "object",
+            "properties": {
+                "body": {
+                    "description": "图片Base64编码",
+                    "type": "string"
+                },
+                "cardSide": {
+                    "description": "卡面方向：front/back",
+                    "type": "string"
+                },
+                "url": {
+                    "description": "图片URL",
+                    "type": "string"
+                }
+            }
+        },
+        "request.SendLoginSmsRequest": {
+            "type": "object",
+            "required": [
+                "phone"
+            ],
+            "properties": {
+                "phone": {
+                    "description": "手机号",
+                    "type": "string"
+                }
+            }
+        },
+        "request.ThreeElementsVerifyRequest": {
+            "type": "object",
+            "required": [
+                "idcard",
+                "name"
+            ],
+            "properties": {
+                "idcard": {
+                    "description": "身份证号",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "姓名",
+                    "type": "string"
+                }
+            }
+        },
+        "response.AdConversionResponse": {
+            "type": "object",
+            "properties": {
+                "ad_id": {
+                    "description": "广告ID",
+                    "type": "string"
+                },
+                "campaign": {
+                    "description": "活动名称",
+                    "type": "string"
+                },
+                "channel_code": {
+                    "description": "渠道代码",
+                    "type": "string"
+                },
+                "channel_name": {
+                    "description": "渠道名称",
+                    "type": "string"
+                },
+                "conversion_time": {
+                    "description": "转化时间",
+                    "type": "string"
+                },
+                "conversion_type": {
+                    "description": "转化类型",
+                    "type": "integer"
+                },
+                "conversion_type_name": {
+                    "description": "转化类型名称",
+                    "type": "string"
+                },
+                "created_at": {
+                    "description": "创建时间",
+                    "type": "string"
+                },
+                "device_has_history": {
+                    "description": "设备历史提交状态：该设备是否曾经提交过任何转化记录（用于智能重复安装处理）",
+                    "type": "boolean"
+                },
+                "device_id": {
+                    "description": "设备ID",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "主键ID",
+                    "type": "integer"
+                },
+                "ip": {
+                    "description": "IP地址",
+                    "type": "string"
+                },
+                "is_repeat_convert": {
+                    "description": "是否重复转化",
+                    "type": "boolean"
+                },
+                "medium": {
+                    "description": "媒介类型",
+                    "type": "string"
+                },
+                "platform": {
+                    "description": "平台来源",
+                    "type": "string"
+                },
+                "source": {
+                    "description": "流量来源",
+                    "type": "string"
+                },
+                "user_id": {
+                    "description": "用户ID",
+                    "type": "integer"
+                }
+            }
+        },
+        "response.FileUploadResult": {
+            "type": "object",
+            "properties": {
+                "file": {
+                    "description": "文件信息",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/file.FileOutput"
+                        }
+                    ]
+                },
+                "message": {
+                    "description": "响应消息",
+                    "type": "string"
+                },
+                "success": {
+                    "description": "上传是否成功",
+                    "type": "boolean"
+                }
+            }
         }
     }
 }

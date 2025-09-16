@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/fastgox/fastgox-api-starter/src/config"
+	"github.com/fastgox/fastgox-api-starter/src/core/config"
 	"github.com/fastgox/utils/logger"
 
 	"gorm.io/gorm"
@@ -21,8 +21,9 @@ func Initialize() (*gorm.DB, error) {
 
 	once.Do(func() {
 		logger.Info("初始化数据库连接...")
-		config.InitConfig()
-		if config.GlobalConfig == nil {
+		err := config.InitConfig()
+		if err != nil {
+			println(err.Error())
 			err = fmt.Errorf("全局配置未初始化")
 			return
 		}

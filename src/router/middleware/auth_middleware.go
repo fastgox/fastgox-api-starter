@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/fastgox/fastgox-api-starter/src/core/session"
+	"github.com/fastgox/fastgox-api-starter/src/repository"
+	"github.com/fastgox/fastgox-api-starter/src/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -42,19 +45,20 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// TODO: 这里应该验证JWT token的有效性
-		// 暂时简单验证，实际项目中需要使用JWT库进行验证
-		if token == "invalid" {
+		// 验证JWT token的有效性
+		claims, err := utils.ValidateJWT(token)
+		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{
 				"code":    401,
-				"message": "token无效",
+				"message": "token无效: " + err.Error(),
 			})
 			c.Abort()
 			return
 		}
+		user, _ := repository.UserRepo.GetByID(claims.UserID)
 
-		// 将用户信息存储到上下文中
-		c.Set("user_id", "user123") // 实际应该从token中解析
+		// 将用户信息存储到上下文中 - 使用新的session包
+		session.Manager.SetUserSession(c, user)
 		c.Next()
 	}
 }

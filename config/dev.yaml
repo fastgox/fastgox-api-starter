@@ -1,23 +1,23 @@
 # 应用配置
 app:
-  name: "fastgox-api-starter API"
+  name: "FastGox API Starter"
   version: "1.0.0"
   env: "dev"
-  port: 8080
+  port: 18081
   debug: true
   swagger:
     host: "/" # 为空时自动生成 localhost:8080
     scheme: "http" # 开发环境使用 http
-    base_path: "/goapi/v1"
+    base_path: "/api/v1"
 
 # 数据库配置 - PostgreSQL、mysql
 database:
   driver: "mysql"
-  host: ""
+  host: "-"
   port: 3306
   user: "root"
-  password: ""
-  dbname: ""
+  password: "-"
+  dbname: "-"
   sslmode: "disable"
   timezone: "Asia/Shanghai"
   max_open_conns: 100
@@ -27,3 +27,86 @@ database:
 # JWT配置
 jwt:
   secret_key: "your-secret-key-here"
+
+# OCR配置
+ocr:
+  engine: "qiandun"
+  aliyun:
+    access-key-id: "-"
+    access-key-secret: "-"
+    endpoint: "ocr-api.cn-hangzhou.aliyuncs.com"
+    is-prod: true
+  qiandun:
+    app-key: "-"
+    app-secret: "-"
+    base-url: "https://api.qiandun365.com/api"
+    is-prod: true
+
+# 身份认证配置
+auth:
+  engine: "qiandun"
+  qiandun:
+    app-key: "-"
+    app-secret: "-"
+    is-prod: true
+
+# 短信验证码配置
+sms-code:
+  code-length: 4      # 验证码长度
+  code-expire-time: 5 # 验证码过期时间（分钟）
+  daily-limit: 10     # 每日发送限制
+  interval-limit: 0   # 发送间隔限制（分钟）- 设为0表示无间隔限制
+  recent-limit: 5     # 最近N分钟内发送限制次数
+  recent-minutes: 60  # 最近限制时间窗口（分钟）
+  # 白名单配置
+  whitelist:
+    - ""   # 白名单手机号，固定发送验证码1234
+  whitelist-code: "1234"  # 白名单固定验证码
+
+# 短信服务配置
+sms:
+  engine: "feigeyun"  # 当前使用的短信服务商
+  feigeyun:
+    api-key: "-"
+    secret: "-"
+    sign-id: "-"
+    template-id: "-"
+    credit-approved-template-id: "your-credit-approved-template-id"
+    api-url: "https://api.4321.sh/sms/template"
+  aliyun:
+    access-key-id: "your-aliyun-access-key-id"
+    access-key-secret: "your-aliyun-access-key-secret"
+    sign-name: "your-sign-name"
+    template-code: "your-template-code"
+
+# 文件配置
+file:
+  max_size: 10485760  # 10MB (10 * 1024 * 1024)
+  max_count: 5        # 单次最多上传5个文件
+  allowed_extensions: [".jpg", ".jpeg", ".png", ".gif", ".pdf", ".doc", ".docx", ".txt"]
+  upload_path: "uploads"  # 上传文件存储目录
+  url_prefix: "/static"   # 文件访问URL前缀
+
+# 应用市场配置
+appmarket:
+  engine: "xiaomi"  # 默认使用的应用市场服务商
+  supported_platforms: ["xiaomi", "vivo"]  # 支持的平台列表
+  xiaomi:
+    api-key: "your-xiaomi-api-key"
+    secret-key: "your-xiaomi-secret-key"
+    base-url: "https://api.xiaomi.com/appmarket"
+    is-prod: false
+  vivo:
+    api-key: "your-vivo-api-key"
+    secret-key: "your-vivo-secret-key"
+    base-url: "https://api.vivo.com/appmarket"
+    is-prod: false
+
+# 地理位置服务配置
+geolocation:
+  default_provider: "amap"  # 默认使用高德地图
+  providers:
+    amap:
+      api_key: "-"
+
+

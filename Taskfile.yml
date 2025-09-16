@@ -1,0 +1,203 @@
+version: '3'
+
+vars:
+  SERVER_PORT: 8080
+  BASE_URL: http://localhost:{{.SERVER_PORT}}
+
+tasks:
+  # 开发相关任务
+  dev:
+    desc: 启动开发服务器
+    cmds:
+      - echo "🚀 启动开发服务器..."
+      - go run cmd/server/main.go
+    
+  build:
+    desc: 构建项目
+    cmds:
+      - echo "🔨 构建项目..."
+      - go build -o bin/fastgox-api-starter cmd/server/main.go
+      - echo "✅ 构建完成: bin/fastgox-api-starter"
+
+  clean:
+    desc: 清理构建文件
+    cmds:
+      - echo "🧹 清理构建文件..."
+      - rm -rf bin/
+      - rm -f coverage.out coverage.html
+      - go clean
+      - echo "✅ 清理完成"
+
+  fmt:
+    desc: 格式化代码
+    cmds:
+      - echo "📝 格式化代码..."
+      - go fmt ./...
+      - echo "✅ 代码格式化完成"
+
+  tidy:
+    desc: 整理依赖
+    cmds:
+      - echo "📦 整理依赖..."
+      - go mod tidy
+      - echo "✅ 依赖整理完成"
+
+  # Swagger相关任务
+  swagger:
+    desc: 生成Swagger文档
+    cmds:
+      - echo "📚 生成Swagger文档..."
+      - swag init -g cmd/server/main.go -o docs
+      - echo "✅ Swagger文档生成完成"
+
+  swagger-serve:
+    desc: 启动服务器并打开Swagger文档
+    deps: [swagger]
+    cmds:
+      - echo "🌐 启动服务器并打开Swagger文档..."
+      - echo "Swagger文档地址: {{.BASE_URL}}/swagger/index.html"
+      - task: dev
+
+  # 测试相关任务
+  test:
+    desc: 运行Go测试套件
+    dir: test
+    cmds:
+      - echo "🧪 运行Go测试套件..."
+      - echo "请确保服务器已启动在 {{.BASE_URL}}"
+      - go test -v
+
+  test-api:
+    desc: 运行API接口测试
+    dir: test
+    cmds:
+      - echo "🚀 运行API接口测试..."
+      - echo "请确保服务器已启动在 {{.BASE_URL}}"
+      - go run run_tests.go
+
+  test-server:
+    desc: 启动服务器并运行测试
+    cmds:
+      - echo "🔄 启动服务器并运行测试..."
+      - task: start-server-bg
+      - sleep 3
+      - task: test-api
+      - task: stop-server
+
+  start-server-bg:
+    desc: 后台启动服务器
+    platforms: [linux, darwin]
+    cmds:
+      - echo "🚀 后台启动服务器..."
+      - nohup go run cmd/server/main.go > server.log 2>&1 &
+      - echo $! > server.pid
+      - echo "服务器已在后台启动，PID保存在 server.pid"
+
+  start-server-bg:windows:
+    desc: 后台启动服务器 (Windows)
+    platforms: [windows]
+    cmds:
+      - echo "🚀 后台启动服务器..."
+      - start /B go run cmd/server/main.go > server.log 2>&1
+      - echo "服务器已在后台启动"
+
+  stop-server:
+    desc: 停止后台服务器
+    platforms: [linux, darwin]
+    cmds:
+      - echo "🛑 停止后台服务器..."
+      - |
+        if [ -f server.pid ]; then
+          kill $(cat server.pid) 2>/dev/null || true
+          rm -f server.pid server.log
+          echo "✅ 服务器已停止"
+        else
+          echo "⚠️  未找到服务器PID文件"
+        fi
+
+  stop-server:windows:
+    desc: 停止后台服务器 (Windows)
+    platforms: [windows]
+    cmds:
+      - echo "🛑 停止后台服务器..."
+      - taskkill /F /IM go.exe 2>nul || echo "未找到运行的Go进程"
+      - del server.log 2>nul || echo ""
+      - echo "✅ 服务器已停止"
+
+  check-server:
+    desc: 检查服务器状态
+    cmds:
+      - echo "🔍 检查服务器状态..."
+      - |
+        if curl -s {{.BASE_URL}}/swagger/index.html > /dev/null 2>&1; then
+          echo "✅ 服务器运行正常: {{.BASE_URL}}"
+        else
+          echo "❌ 服务器未响应: {{.BASE_URL}}"
+        fi
+
+  # 完整的开发工作流
+  setup:
+    desc: 初始化项目环境
+    cmds:
+      - echo "🔧 初始化项目环境..."
+      - task: tidy
+      - task: swagger
+      - echo "✅ 项目环境初始化完成"
+
+  dev-full:
+    desc: 完整开发流程（格式化、生成文档、启动服务器）
+    cmds:
+      - task: fmt
+      - task: swagger
+      - task: dev
+
+  # 部署相关任务
+  release:
+    desc: 构建发布版本
+    cmds:
+      - echo "🚀 构建发布版本..."
+      - task: clean
+      - task: fmt
+      - task: tidy
+      - task: swagger
+      - task: build
+      - echo "✅ 发布版本构建完成"
+
+  # 帮助信息
+  help:
+    desc: 显示所有可用任务
+    cmds:
+      - echo "📋 可用任务列表："
+      - echo ""
+      - echo "开发任务："
+      - echo "  dev          - 启动开发服务器"
+      - echo "  dev-full     - 完整开发流程（格式化、生成文档、启动服务器）"
+      - echo "  build        - 构建项目"
+      - echo "  clean        - 清理构建文件"
+      - echo "  fmt          - 格式化代码"
+      - echo "  tidy         - 整理依赖"
+      - echo ""
+      - echo "文档任务："
+      - echo "  swagger      - 生成Swagger文档"
+      - echo "  swagger-serve - 启动服务器并打开Swagger文档"
+      - echo ""
+      - echo "测试任务："
+      - echo "  test         - 运行Go测试套件"
+      - echo "  test-api     - 运行API接口测试"
+      - echo "  test-server  - 启动服务器并运行测试"
+      - echo ""
+      - echo "服务器管理："
+      - echo "  start-server-bg - 后台启动服务器"
+      - echo "  stop-server     - 停止后台服务器"
+      - echo "  check-server    - 检查服务器状态"
+      - echo ""
+      - echo "项目管理："
+      - echo "  setup        - 初始化项目环境"
+      - echo "  release      - 构建发布版本"
+      - echo ""
+      - echo "使用方法: task <任务名>"
+
+  default:
+    desc: 默认任务（显示帮助）
+    cmds:
+      - task: help

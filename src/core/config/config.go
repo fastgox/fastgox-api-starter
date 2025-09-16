@@ -4,15 +4,18 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/fastgox/fastgox-api-starter/src/models/config"
+	"github.com/joho/godotenv"
 	"gopkg.in/yaml.v3"
 )
 
 // 全局配置实例
-var GlobalConfig *Config
+var GlobalConfig *config.Config
 
 // InitConfig 初始化配置
 func InitConfig() error {
 	// 设置环境
+	godotenv.Load(".env")
 	env := os.Getenv("APP_ENV")
 	if env == "" {
 		env = "dev"
@@ -21,9 +24,9 @@ func InitConfig() error {
 	// 构建配置文件路径
 	configFile := fmt.Sprintf("config/%s.yaml", env)
 
-	// 检查配置文件是否存储配置
+	// 检查配置文件是否存在
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
-		return fmt.Errorf("配置文件不存储? %s", configFile)
+		return fmt.Errorf("配置文件不存在: %s", configFile)
 	}
 
 	// 读取配置文件
@@ -33,24 +36,24 @@ func InitConfig() error {
 	}
 
 	// 解析YAML
-	var config Config
-	if err := yaml.Unmarshal(data, &config); err != nil {
+	var cfg config.Config
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		fmt.Println(err)
 		return fmt.Errorf("解析配置文件失败: %w", err)
 	}
 
 	// 验证配置
-	if err := config.Validate(); err != nil {
+	if err := validateConfig(&cfg); err != nil {
 		return fmt.Errorf("配置验证失败: %w", err)
 	}
 
 	// 设置全局配置
-	GlobalConfig = &config
+	GlobalConfig = &cfg
 	return nil
 }
 
-// Validate 验证配置
-func (c *Config) Validate() error {
+// validateConfig 验证配置
+func validateConfig(c *config.Config) error {
 	if c.Database.Host == "" {
 		return fmt.Errorf("数据库主机地址不能为空")
 	}
