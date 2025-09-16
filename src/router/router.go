@@ -1,26 +1,25 @@
 package router
 
 import (
-	"github.com/fastgox/fastgox-api-starter/src/router/middleware"
-	"github.com/gin-gonic/gin"
-	"github.com/swaggo/gin-swagger"
-	ginSwaggerFiles "github.com/swaggo/files"
+	"github.com/lonng/nano/component"
 )
 
 var (
-	AuthRouter   *gin.RouterGroup
-	PublicRouter *gin.RouterGroup
-	Engine       *gin.Engine
+	// Components TCP组件管理器
+	Components *component.Components
 )
 
-// init 包初始化时创建引擎和路由组
+// init 包初始化时创建组件管理器
 func init() {
-	Engine = gin.New()
-	Engine.Use(middleware.CORSMiddleware())
-	// Swagger 文档路由
-	Engine.GET("/swagger/*any", ginSwagger.WrapHandler(ginSwaggerFiles.Handler))
-	frontPrefix := "/api/v1"
-	PublicRouter = Engine.Group(frontPrefix)
-	AuthRouter = Engine.Group(frontPrefix)
-	AuthRouter.Use(middleware.AuthMiddleware())
+	Components = &component.Components{}
+}
+
+// GetComponents 获取组件管理器（供外部使用）
+func GetComponents() *component.Components {
+	return Components
+}
+
+// RegisterComponent 注册TCP组件
+func Register(comp component.Component) {
+	Components.Register(comp)
 }

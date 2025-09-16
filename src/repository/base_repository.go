@@ -1,10 +1,12 @@
 package repository
 
 import (
+	"fmt"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/fastgox/fastgox-api-starter/src/core/database"
-	"github.com/fastgox/fastgox-api-starter/src/models/entity"
 	"github.com/fastgox/utils/logger"
 	"gorm.io/gorm"
 )
@@ -35,18 +37,12 @@ func initDatabase() {
 	// 初始化数据库连接
 	db, err := database.Initialize()
 	if err != nil {
-		logger.Error("数据库初始化失败: ", err)
+		logger.Error("数据库初始化失败: %v", err)
 		panic(err)
 	}
 
 	// 设置全局数据库实例
 	GlobalDB = db
-
-	// 自动迁移表结构
-	if err := database.AutoMigrate(&entity.User{}); err != nil {
-		logger.Error("数据库表结构迁移失败: ", err)
-		panic(err)
-	}
 
 	logger.Info("数据库初始化完成")
 }
@@ -75,7 +71,7 @@ func (r *BaseRepository[T]) Create(entity *T) error {
 }
 
 // GetByID 根据ID获取实体
-func (r *BaseRepository[T]) GetByID(id string) (*T, error) {
+func (r *BaseRepository[T]) GetByID(id int64) (*T, error) {
 	var entity T
 	err := r.DB.Where("id = ?", id).First(&entity).Error
 	if err != nil {
@@ -201,14 +197,27 @@ func (r *BaseRepository[T]) Page(page, size int, condition string, args ...inter
 	var entities []T
 	var total int64
 
+	// 添加SQL调试日志
+	fmt.Printf("🔍 [DEBUG] BaseRepository.Page 查询参数: page=%d, size=%d, condition='%s', args=%v\n",
+		page, size, condition, args)
+
 	// 计算总数
 	countQuery := r.DB.Model(new(T))
 	if condition != "" {
 		countQuery = countQuery.Where(condition, args...)
 	}
+
+	// 获取生成的SQL（调试用）
+	sql := countQuery.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		return tx.Count(&total)
+	})
+	fmt.Printf("🔍 [DEBUG] 生成的COUNT SQL: %s\n", sql)
+
 	if err := countQuery.Count(&total).Error; err != nil {
+		fmt.Printf("❌ COUNT查询失败: %v\n", err)
 		return nil, 0, err
 	}
+	fmt.Printf("🔍 [DEBUG] COUNT查询结果: total=%d\n", total)
 
 	// 分页查询
 	offset := (page - 1) * size
@@ -216,7 +225,148 @@ func (r *BaseRepository[T]) Page(page, size int, condition string, args ...inter
 	if condition != "" {
 		query = query.Where(condition, args...)
 	}
+
+	// 获取生成的SQL（调试用）
+	findSQL := query.ToSQL(func(tx *gorm.DB) *gorm.DB {
+		return tx.Find(&entities)
+	})
+	fmt.Printf("🔍 [DEBUG] 生成的FIND SQL: %s\n", findSQL)
+
 	err := query.Find(&entities).Error
+	if err != nil {
+		fmt.Printf("❌ FIND查询失败: %v\n", err)
+	} else {
+		fmt.Printf("🔍 [DEBUG] FIND查询结果: 找到%d条记录\n", len(entities))
+	}
 
 	return entities, total, err
+}
+func (r *BaseRepository[T]) ApplyFiltersReflect(f interface{}) *gorm.DB {
+	if f == nil {
+		return r.DB
+	}
+	db := r.DB
+
+	quoteCol := func(col string) string {
+		// 如果已经包含引号，直接返回
+		if strings.ContainsAny(col, "`\"") {
+			return col
+		}
+		parts := strings.Split(col, ".")
+		for i := range parts {
+			parts[i] = strings.TrimSpace(parts[i])
+			if parts[i] == "" {
+				return col
+			}
+			// 每个标识符只允许字母数字和下划线，避免注入
+			for _, ch := range parts[i] {
+				if !(ch == '_' || (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+					return col
+				}
+			}
+			// Postgres 风格：用双引号包裹每个标识符
+			parts[i] = `"` + parts[i] + `"`
+		}
+		return strings.Join(parts, ".")
+	}
+
+	var apply func(reflect.Value)
+	apply = func(v reflect.Value) {
+		if !v.IsValid() {
+			return
+		}
+		if v.Kind() == reflect.Ptr {
+			if v.IsNil() {
+				return
+			}
+			v = v.Elem()
+		}
+		if v.Kind() != reflect.Struct {
+			return
+		}
+
+		t := v.Type()
+		for i := 0; i < t.NumField(); i++ {
+			sf := t.Field(i)
+			fv := v.Field(i)
+
+			if sf.Anonymous {
+				apply(fv)
+				continue
+			}
+			if !fv.IsValid() {
+				continue
+			}
+			if fv.Kind() == reflect.Ptr && fv.IsNil() {
+				continue
+			}
+
+			tag := sf.Tag.Get("filter")
+			if tag == "" {
+				if fv.Kind() == reflect.Struct {
+					apply(fv)
+				}
+				continue
+			}
+
+			parts := strings.Split(tag, ",")
+			col := strings.TrimSpace(parts[0])
+			if col == "" {
+				continue
+			}
+
+			// 简单白名单：只允许字母、数字、下划线和点
+			valid := true
+			for _, ch := range col {
+				if !(ch == '.' || ch == '_' || (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+					valid = false
+					break
+				}
+			}
+			if !valid {
+				continue
+			}
+
+			col = quoteCol(col)
+			op := "eq"
+			if len(parts) > 1 {
+				op = strings.TrimSpace(parts[1])
+			}
+
+			var val interface{}
+			if fv.Kind() == reflect.Ptr {
+				val = fv.Elem().Interface()
+			} else {
+				val = fv.Interface()
+			}
+			strVal := fmt.Sprintf("%v", val)
+			if strVal == "" {
+				continue
+			}
+
+			switch op {
+			case "eq":
+				db = db.Where(col+" = ?", val)
+			case "like":
+				// 检查是否是 JSONB 字段（meta 字段）
+				if strings.Contains(col, "meta") {
+					// 对于 JSONB 字段，使用 PostgreSQL 的 JSONB 文本搜索
+					db = db.Where(col+"::text LIKE ?", "%"+strVal+"%")
+				} else {
+					db = db.Where(col+" LIKE ?", "%"+strVal+"%")
+				}
+			case "jsonb_contains":
+				// 可以添加更多 JSONB 特定的操作符
+				db = db.Where(col+" @> ?", val)
+			case "jsonb_key":
+				// 检查 JSONB 是否包含某个键
+				db = db.Where(col+" ? ?", val)
+			default:
+				db = db.Where(col+" = ?", val)
+			}
+		}
+	}
+
+	apply(reflect.ValueOf(f))
+	return db
 }

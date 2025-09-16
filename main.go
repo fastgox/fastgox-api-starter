@@ -15,10 +15,10 @@ func main() {
 	command := os.Args[1]
 
 	switch command {
-	case "run", "dev":
-		runDev()
+	case "run", "dev", "start":
+		runGame() // 直接启动游戏服务器
 	case "build":
-		build()
+		buildGame() // 直接构建游戏服务器
 	case "clean":
 		clean()
 	case "fmt":
@@ -35,28 +35,28 @@ func main() {
 	}
 }
 
-func runDev() {
-	fmt.Println("启动开发服务器...")
+func runGame() {
+	fmt.Println("🎮 启动TCP游戏服务器...")
 	cmd := exec.Command("go", "run", "cmd/server/main.go")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	cmd.Stdin = os.Stdin
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("启动失败: %v\n", err)
+		fmt.Printf("游戏服务器启动失败: %v\n", err)
 		os.Exit(1)
 	}
 }
 
-func build() {
-	fmt.Println("🔨 构建项目...")
-	cmd := exec.Command("go", "build", "-o", "bin/fastgox-api-starter", "cmd/server/main.go")
+func buildGame() {
+	fmt.Println("🔨 构建TCP游戏服务器...")
+	cmd := exec.Command("go", "build", "-o", "bin/fastgox-tcp-game-server", "cmd/server/main.go")
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
-		fmt.Printf("构建失败: %v\n", err)
+		fmt.Printf("游戏服务器构建失败: %v\n", err)
 		os.Exit(1)
 	}
-	fmt.Println("构建完成: bin/fastgox-api-starter")
+	fmt.Println("🎮 TCP游戏服务器构建完成: bin/fastgox-tcp-game-server")
 }
 
 func clean() {
@@ -108,20 +108,23 @@ func generateSwagger() {
 }
 
 func showHelp() {
-	fmt.Println("fastgox-api-starter API 开发工具")
+	fmt.Println("🎮 FastGox TCP游戏服务器 开发工具")
 	fmt.Println()
 	fmt.Println("用法: go run main.go <命令>")
 	fmt.Println()
 	fmt.Println("可用命令:")
-	fmt.Println("  run/dev  - 启动开发服务器")
-	fmt.Println("  build    - 构建项目到 bin/fastgox-api-starter")
-	fmt.Println("  clean    - 清理构建文件")
-	fmt.Println("  fmt      - 格式化代码")
-	fmt.Println("  tidy     - 整理Go依赖")
-	fmt.Println("  swagger  - 生成 Swagger 文档到 docs 目录")
-	fmt.Println("  help     - 显示帮助")
+	fmt.Println("  run/dev/start - 启动TCP游戏服务器")
+	fmt.Println("  build         - 构建TCP游戏服务器")
+	fmt.Println("  clean         - 清理构建文件")
+	fmt.Println("  fmt           - 格式化代码")
+	fmt.Println("  tidy          - 整理Go依赖")
+	fmt.Println("  swagger       - 生成 Swagger 文档")
+	fmt.Println("  help          - 显示帮助")
 	fmt.Println()
 	fmt.Println("示例:")
-	fmt.Println("  go run main.go run    # 启动开发服务器")
-	fmt.Println("  go run main.go build  # 构建项目")
+	fmt.Println("  go run main.go run     # 启动TCP游戏服务器")
+	fmt.Println("  go run main.go build   # 构建TCP游戏服务器")
+	fmt.Println("  go run main.go clean   # 清理构建文件")
+	fmt.Println()
+	fmt.Println("🚀 纯TCP游戏服务器，基于nano框架")
 }

@@ -10,8 +10,3 @@ type UserRepository struct {
 }
 
 var UserRepo = &UserRepository{BaseRepository: *GetRepository[entity.User]()}
-
-// GetByEmail 根据邮箱获取用户
-func (r *UserRepository) GetByEmail(email string) (*entity.User, error) {
-	return r.First("email = ?", email)
-}
