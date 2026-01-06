@@ -1,12 +1,21 @@
 package response
 
-// AuthVerifyResponse 身份认证响应
-type AuthVerifyResponse struct {
-	Success      bool   `json:"success"`      // 是否认证成功
-	VerifyStatus string `json:"verifyStatus"` // 认证状态
-	FlowNo       string `json:"flowNo"`       // 认证流水号
-	ServiceId    string `json:"serviceId"`    // 服务流程ID
-	Message      string `json:"message"`      // 响应消息
-	Provider     string `json:"provider"`     // 服务提供商
-	CostTime     int64  `json:"costTime"`     // 耗时（毫秒）
+// UserResponse 用户响应
+type UserResponse struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	Email           string  `json:"email"`
+	Role            string  `json:"role"`
+	ProfileImageURL string  `json:"profile_image_url"`
+	Phone           *string `json:"phone,omitempty"`
+	CreatedAt       int64   `json:"created_at"`
+	UpdatedAt       int64   `json:"updated_at"`
+	LastActiveAt    int64   `json:"last_active_at"`
+}
+
+// LoginResponse 登录响应
+type LoginResponse struct {
+	Token     string        `json:"token"`
+	ExpiresAt int64         `json:"expires_at"`
+	User      *UserResponse `json:"user,omitempty"`
 }

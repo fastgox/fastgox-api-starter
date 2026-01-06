@@ -3,7 +3,6 @@ package router
 import (
 	"net/http"
 
-	"github.com/fastgox/fastgox-api-starter/src/core/config"
 	"github.com/fastgox/fastgox-api-starter/src/router/middleware"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -63,9 +62,6 @@ func setupTemplateRoutes() {
 
 // setupStaticFiles 设置静态文件服务
 func setupStaticFiles() {
-	if config.GlobalConfig != nil {
-		fileConfig := config.GlobalConfig.File
-		// 提供静态文件访问服务
-		Engine.Static(fileConfig.URLPrefix, fileConfig.UploadPath)
-	}
+	// 静态文件服务（如需要可配置）
+	Engine.Static("/static", "uploads")
 }

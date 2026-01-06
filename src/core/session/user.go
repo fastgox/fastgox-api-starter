@@ -16,17 +16,16 @@ const (
 
 // UserSession 用户会话信息
 type UserSession struct {
-	UserID   int64  `json:"user_id"`
-	Phone    string `json:"phone"`
-	Platform string `json:"platform,omitempty"`
+	UserID   string  `json:"user_id"`
+	Phone    *string `json:"phone"`
+	Platform string  `json:"platform,omitempty"`
 }
 
 // SetUser
 func (sm *SessionManager) SetUserSession(c *gin.Context, user *entity.User) error {
 	userSession := &UserSession{
-		UserID:   user.ID,
-		Phone:    user.Phone,
-		Platform: user.Platform,
+		UserID: user.ID,
+		Phone:  user.Phone,
 	}
 	return sm.SetEntity(c, key, userSession)
 }
@@ -86,8 +85,7 @@ func (sm *SessionManager) GetUserSessionByHeader(c *gin.Context) *UserSession {
 	// 将用户信息存储到上下文中 - 使用新的session包
 	Manager.SetUserSession(c, user)
 	return &UserSession{
-		UserID:   user.ID,
-		Phone:    user.Phone,
-		Platform: user.Platform,
+		UserID: user.ID,
+		Phone:  user.Phone,
 	}
 }

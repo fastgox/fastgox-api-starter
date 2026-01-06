@@ -10,13 +10,13 @@ import (
 
 // Claims JWT声明结构
 type Claims struct {
-	UserID int64  `json:"user_id"`
-	Phone  string `json:"phone"`
+	UserID string  `json:"user_id"`
+	Phone  *string `json:"phone"`
 	jwt.RegisteredClaims
 }
 
 // GenerateJWT 生成JWT令牌
-func GenerateJWT(userID int64, phone string) (string, *time.Time, error) {
+func GenerateJWT(userID string, phone *string) (string, *time.Time, error) {
 	if config.GlobalConfig == nil {
 		return "", nil, errors.New("配置未初始化")
 	}

@@ -17,14 +17,12 @@ var (
 
 // Initialize 初始化数据库连接
 func Initialize() (*gorm.DB, error) {
-	var err error
+	var initErr error
 
 	once.Do(func() {
 		logger.Info("初始化数据库连接...")
-		err := config.InitConfig()
-		if err != nil {
-			println(err.Error())
-			err = fmt.Errorf("全局配置未初始化")
+		if err := config.InitConfig(); err != nil {
+			initErr = fmt.Errorf("配置初始化失败: %w", err)
 			return
 		}
 
@@ -42,16 +40,17 @@ func Initialize() (*gorm.DB, error) {
 			LogLevel:    config.GlobalConfig.Database.LogLevel,
 		}
 
+		var err error
 		globalDB, err = NewConnection(dbConfig)
 		if err != nil {
-			err = fmt.Errorf("数据库连接失败: %w", err)
+			initErr = fmt.Errorf("数据库连接失败: %w", err)
 			return
 		}
 
 		logger.Info("数据库初始化完成")
 	})
 
-	return globalDB, err
+	return globalDB, initErr
 }
 
 // GetDB 获取全局数据库实例

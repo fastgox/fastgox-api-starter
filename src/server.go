@@ -5,10 +5,7 @@ import (
 	"net/http"
 
 	"github.com/fastgox/fastgox-api-starter/src/core/config"
-	_ "github.com/fastgox/fastgox-api-starter/src/pkg/auth"
-	"github.com/fastgox/fastgox-api-starter/src/pkg/file"
-	"github.com/fastgox/fastgox-api-starter/src/pkg/geolocation"
-	_ "github.com/fastgox/fastgox-api-starter/src/pkg/ocr"
+	"github.com/fastgox/fastgox-api-starter/src/core/database"
 	"github.com/fastgox/fastgox-api-starter/src/router"
 	_ "github.com/fastgox/fastgox-api-starter/src/router/handle"
 	"github.com/fastgox/utils/logger"
@@ -26,15 +23,22 @@ func NewServer() (*Server, error) {
 	logger.InitWithPath("data/logs")
 	logger.Info("创建服务器实例..")
 
-	// 初始化地理位置服务提供商
-	geolocation.InitAmapProvider()
-	// 初始化文件服务提供商
-	file.InitLocalProvider()
+	// 初始化数据库
+	_, err := database.Initialize()
+	if err != nil {
+		logger.Error("数据库初始化失败: %v", err)
+		return nil, err
+	}
+	logger.Info("数据库连接成功")
 
 	server := &Server{}
 
 	// 创建HTTP服务器
-	addr := fmt.Sprintf(":%d", config.GlobalConfig.App.Port)
+	port := 8080
+	if config.GlobalConfig != nil && config.GlobalConfig.App.Port > 0 {
+		port = config.GlobalConfig.App.Port
+	}
+	addr := fmt.Sprintf(":%d", port)
 	server.HTTP = &http.Server{
 		Addr:    addr,
 		Handler: router.Engine,

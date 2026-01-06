@@ -1,7 +1,7 @@
 package request
 
-// ThreeElementsVerifyRequest 三要素认证请求
-type ThreeElementsVerifyRequest struct {
-	Name   string `json:"name" binding:"required"`   // 姓名
-	IdCard string `json:"idcard" binding:"required"` // 身份证号
+// LoginRequest 登录请求
+type LoginRequest struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
 }

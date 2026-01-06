@@ -1,30 +1,68 @@
 package entity
 
-import "time"
+import (
+	"database/sql/driver"
+	"errors"
+)
 
-// User 用户表实体 - 对应 t_user 表
+// JSONMap 自定义JSON类型，支持comparable
+type JSONMap string
+
+func (j JSONMap) Value() (driver.Value, error) {
+	if j == "" {
+		return nil, nil
+	}
+	return string(j), nil
+}
+
+func (j *JSONMap) Scan(value interface{}) error {
+	if value == nil {
+		*j = ""
+		return nil
+	}
+	switch v := value.(type) {
+	case []byte:
+		*j = JSONMap(v)
+	case string:
+		*j = JSONMap(v)
+	default:
+		return errors.New("invalid type for JSONMap")
+	}
+	return nil
+}
+
+func (j JSONMap) MarshalJSON() ([]byte, error) {
+	if j == "" {
+		return []byte("null"), nil
+	}
+	return []byte(j), nil
+}
+
+func (j *JSONMap) UnmarshalJSON(data []byte) error {
+	*j = JSONMap(data)
+	return nil
+}
+
+// User 用户表实体 - 对应 public.user 表
 type User struct {
-	ID          int64      `gorm:"column:id;primaryKey;autoIncrement" json:"id"`
-	Phone       string     `gorm:"column:phone;type:varchar(80)" json:"phone"`
-	ChannelCode string     `gorm:"column:channel_code;type:varchar(80)" json:"channel_code"` // 渠道代码，替代channel_id
-	Status      int8       `gorm:"column:status;type:tinyint(1);default:1" json:"status"`
-	CreateTime  *time.Time `gorm:"column:create_time;type:datetime(3)" json:"create_time"`
-	UpdateTime  *time.Time `gorm:"column:update_time;type:datetime(3)" json:"update_time"`
-	Platform    string     `gorm:"column:platform;type:varchar(80)" json:"platform"`
-	IsAuth      int8       `gorm:"column:is_auth;type:tinyint;default:0" json:"is_auth"`
+	ID              string  `gorm:"column:id;primaryKey;type:text" json:"id"`
+	Name            string  `gorm:"column:name;type:varchar(255);not null" json:"name"`
+	Email           string  `gorm:"column:email;type:varchar(255);not null" json:"email"`
+	Role            string  `gorm:"column:role;type:varchar(255);not null" json:"role"`
+	ProfileImageURL string  `gorm:"column:profile_image_url;type:text;not null" json:"profile_image_url"`
+	ApiKey          *string `gorm:"column:api_key;type:varchar(255)" json:"api_key,omitempty"`
+	CreatedAt       int64   `gorm:"column:created_at;type:bigint;not null" json:"created_at"`
+	UpdatedAt       int64   `gorm:"column:updated_at;type:bigint;not null" json:"updated_at"`
+	LastActiveAt    int64   `gorm:"column:last_active_at;type:bigint;not null" json:"last_active_at"`
+	Settings        JSONMap `gorm:"column:settings;type:json" json:"settings,omitempty"`
+	Info            JSONMap `gorm:"column:info;type:json" json:"info,omitempty"`
+	OauthSub        *string `gorm:"column:oauth_sub;type:text" json:"oauth_sub,omitempty"`
+	InvitationCode  string  `gorm:"column:invitation_code;type:varchar(32);not null;default:''" json:"invitation_code"`
+	Phone           *string `gorm:"column:phone;type:varchar(20)" json:"phone,omitempty"`
+	OauthData       JSONMap `gorm:"column:oauth_data;type:jsonb" json:"oauth_data,omitempty"`
 }
 
 // TableName 设置表名
 func (User) TableName() string {
-	return "t_user"
-}
-
-// IsAuthenticated 判断用户是否已实名认证
-func (u *User) IsAuthenticated() bool {
-	return u.IsAuth == 1
-}
-
-// IsActive 判断用户是否激活状态
-func (u *User) IsActive() bool {
-	return u.Status == 1
+	return "user"
 }

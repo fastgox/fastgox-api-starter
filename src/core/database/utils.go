@@ -7,10 +7,10 @@ import (
 
 // formatPostgresDSN 格式化PostgreSQL数据库连接字符串
 func formatPostgresDSN(host string, port int, user, password, dbname, sslmode, timezone string) string {
-	escapedPassword := url.QueryEscape(password)
+	// 使用标准的 PostgreSQL 连接字符串格式
 	return fmt.Sprintf(
-		"host=%s user=%s password=%s dbname=%s port=%d sslmode=%s TimeZone=%s",
-		host, user, escapedPassword, dbname, port, sslmode, timezone,
+		"host=%s port=%d user=%s password=%s dbname=%s sslmode=%s TimeZone=%s",
+		host, port, user, password, dbname, sslmode, timezone,
 	)
 }
 
