@@ -17,14 +17,14 @@ var (
 
 // Initialize 初始化数据库连接
 func Initialize() (*gorm.DB, error) {
-	var err error
+	var initErr error
 
 	once.Do(func() {
 		logger.Info("初始化数据库连接...")
 		err := config.InitConfig()
 		if err != nil {
 			println(err.Error())
-			err = fmt.Errorf("全局配置未初始化")
+			initErr = fmt.Errorf("全局配置未初始化")
 			return
 		}
 
@@ -44,14 +44,35 @@ func Initialize() (*gorm.DB, error) {
 
 		globalDB, err = NewConnection(dbConfig)
 		if err != nil {
-			err = fmt.Errorf("数据库连接失败: %w", err)
+			initErr = fmt.Errorf("数据库连接失败: %w", err)
 			return
+		}
+
+		// 执行数据库迁移（连接成功后）
+		if config.GlobalConfig.Database.AutoMigrate {
+			migrationsDir := config.GlobalConfig.Database.MigrationsDir
+			if migrationsDir == "" {
+				migrationsDir = "docs/db" // 默认目录
+			}
+
+			sqlDB, err := globalDB.DB()
+			if err != nil {
+				initErr = fmt.Errorf("获取数据库连接失败: %w", err)
+				return
+			}
+
+			migrator := NewMigrator(sqlDB, dbConfig.Driver, migrationsDir)
+			if err := migrator.RunMigrations(); err != nil {
+				logger.Error("数据库迁移失败: %v", err)
+				initErr = fmt.Errorf("数据库迁移失败: %w", err)
+				return
+			}
 		}
 
 		logger.Info("数据库初始化完成")
 	})
 
-	return globalDB, err
+	return globalDB, initErr
 }
 
 // GetDB 获取全局数据库实例

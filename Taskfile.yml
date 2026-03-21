@@ -47,7 +47,7 @@ tasks:
     desc: 生成Swagger文档
     cmds:
       - echo "📚 生成Swagger文档..."
-      - swag init -g cmd/server/main.go -o docs
+      - swag init -g cmd/server/main.go -o docs/swagger
       - echo "✅ Swagger文档生成完成"
 
   swagger-serve:

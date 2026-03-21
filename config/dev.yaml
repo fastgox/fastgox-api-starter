@@ -12,9 +12,9 @@ app:
 
 # 数据库配置 - PostgreSQL、mysql
 database:
-  driver: "mysql"
+  driver: "postgres"
   host: "-"
-  port: 3306
+  port: 5432
   user: "root"
   password: "-"
   dbname: "-"
@@ -23,6 +23,8 @@ database:
   max_open_conns: 100
   max_idle_conns: 10
   log_level: "info"
+  auto_migrate: true          # 启动时自动执行 SQL 迁移
+  migrations_dir: "docs/db"   # 迁移文件目录
 
 # JWT配置
 jwt:

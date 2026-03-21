@@ -15,7 +15,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	_ "github.com/fastgox/fastgox-api-starter/docs"
+	_ "github.com/fastgox/fastgox-api-starter/docs/swagger"
 	"github.com/fastgox/fastgox-api-starter/src"
 	"github.com/fastgox/utils/logger"
 )
