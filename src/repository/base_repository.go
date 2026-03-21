@@ -197,27 +197,15 @@ func (r *BaseRepository[T]) Page(page, size int, condition string, args ...inter
 	var entities []T
 	var total int64
 
-	// 添加SQL调试日志
-	fmt.Printf("🔍 [DEBUG] BaseRepository.Page 查询参数: page=%d, size=%d, condition='%s', args=%v\n",
-		page, size, condition, args)
-
 	// 计算总数
 	countQuery := r.DB.Model(new(T))
 	if condition != "" {
 		countQuery = countQuery.Where(condition, args...)
 	}
 
-	// 获取生成的SQL（调试用）
-	sql := countQuery.ToSQL(func(tx *gorm.DB) *gorm.DB {
-		return tx.Count(&total)
-	})
-	fmt.Printf("🔍 [DEBUG] 生成的COUNT SQL: %s\n", sql)
-
 	if err := countQuery.Count(&total).Error; err != nil {
-		fmt.Printf("❌ COUNT查询失败: %v\n", err)
 		return nil, 0, err
 	}
-	fmt.Printf("🔍 [DEBUG] COUNT查询结果: total=%d\n", total)
 
 	// 分页查询
 	offset := (page - 1) * size
@@ -226,19 +214,7 @@ func (r *BaseRepository[T]) Page(page, size int, condition string, args ...inter
 		query = query.Where(condition, args...)
 	}
 
-	// 获取生成的SQL（调试用）
-	findSQL := query.ToSQL(func(tx *gorm.DB) *gorm.DB {
-		return tx.Find(&entities)
-	})
-	fmt.Printf("🔍 [DEBUG] 生成的FIND SQL: %s\n", findSQL)
-
 	err := query.Find(&entities).Error
-	if err != nil {
-		fmt.Printf("❌ FIND查询失败: %v\n", err)
-	} else {
-		fmt.Printf("🔍 [DEBUG] FIND查询结果: 找到%d条记录\n", len(entities))
-	}
-
 	return entities, total, err
 }
 func (r *BaseRepository[T]) ApplyFiltersReflect(f interface{}) *gorm.DB {

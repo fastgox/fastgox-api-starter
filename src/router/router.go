@@ -1,10 +1,13 @@
 package router
 
 import (
+	"html/template"
 	"net/http"
+	"path/filepath"
 
 	"github.com/fastgox/fastgox-api-starter/src/core/config"
 	"github.com/fastgox/fastgox-api-starter/src/router/middleware"
+	"github.com/fastgox/utils/logger"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -22,8 +25,8 @@ func init() {
 	Engine = gin.Default() // 使用Default()自动包含Logger和Recovery中间件
 	Engine.Use(middleware.CORSMiddleware())
 
-	// 加载HTML模板
-	Engine.LoadHTMLGlob("templates/*")
+	// 加载HTML模板（支持 layouts 公共模板）
+	loadTemplates()
 
 	frontPrefix := "/api/v1"
 	PublicRouter = Engine.Group(frontPrefix)
@@ -38,6 +41,31 @@ func init() {
 
 	// Swagger 文档路由
 	Engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+}
+
+// loadTemplates 加载模板文件，支持 layouts 继承
+// 每个页面模板与 layouts/*.html 一起解析，实现公共布局复用
+func loadTemplates() {
+	layoutFiles, err := filepath.Glob("templates/layouts/*.html")
+	if err != nil {
+		logger.Error("加载布局模板失败: %v", err)
+	}
+
+	pageFiles, err := filepath.Glob("templates/*.html")
+	if err != nil {
+		logger.Error("加载页面模板失败: %v", err)
+	}
+
+	tmpl := template.New("")
+	for _, page := range pageFiles {
+		// 每个页面模板与所有 layout 模板一起解析
+		files := append([]string{page}, layoutFiles...)
+		name := filepath.Base(page)
+		t := tmpl.New(name)
+		template.Must(t.ParseFiles(files...))
+	}
+
+	Engine.SetHTMLTemplate(tmpl)
 }
 
 // setupTemplateRoutes 设置模板路由
@@ -69,3 +97,4 @@ func setupStaticFiles() {
 		Engine.Static(fileConfig.URLPrefix, fileConfig.UploadPath)
 	}
 }
+

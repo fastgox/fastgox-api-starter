@@ -1,0 +1,26 @@
+{{ define "base" }}
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ template "title" . }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        a { color: #667eea; text-decoration: none; transition: all 0.3s; }
+        a:hover { opacity: 0.8; }
+        {{ template "style" . }}
+    </style>
+</head>
+<body>
+    {{ template "body" . }}
+</body>
+</html>
+{{ end }}

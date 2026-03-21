@@ -6,6 +6,7 @@ import (
 
 	"github.com/fastgox/fastgox-api-starter/src/models/dto"
 	"github.com/fastgox/fastgox-api-starter/src/models/dto/request"
+	"github.com/fastgox/fastgox-api-starter/src/router"
 	"github.com/fastgox/fastgox-api-starter/src/services"
 	"github.com/gin-gonic/gin"
 )
@@ -135,4 +136,10 @@ func LoginWithSms(c *gin.Context) {
 		Message: result.Message,
 		Data:    result,
 	})
+}
+
+func init() {
+	// 注册用户认证路由（公开接口）
+	router.PublicRouter.POST("/auth/send-login-sms", SendLoginSms)
+	router.PublicRouter.POST("/auth/login-with-sms", LoginWithSms)
 }
