@@ -42,6 +42,14 @@ func Initialize() (*gorm.DB, error) {
 			LogLevel:    config.GlobalConfig.Database.LogLevel,
 		}
 
+		// 自动创建数据库（如果不存在）
+		if config.GlobalConfig.Database.AutoMigrate {
+			if err := EnsureDatabase(dbConfig); err != nil {
+				initErr = fmt.Errorf("确保数据库存在失败: %w", err)
+				return
+			}
+		}
+
 		globalDB, err = NewConnection(dbConfig)
 		if err != nil {
 			initErr = fmt.Errorf("数据库连接失败: %w", err)
