@@ -113,4 +113,4 @@ Migrations run automatically on startup when `auto_migrate: true` is set.
 
 ## License
 
-MIT - See [LICENSE](LICENSE)
+Apache 2.0 - See [LICENSE](LICENSE)

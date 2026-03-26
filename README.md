@@ -113,4 +113,4 @@ docs/db/000003_your_migration.sql
 
 ## 许可证
 
-MIT - 查看 [LICENSE](LICENSE)
+Apache 2.0 - 查看 [LICENSE](LICENSE)
