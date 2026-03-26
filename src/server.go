@@ -1,8 +1,11 @@
 package src
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/fastgox/fastgox-api-starter/src/core/config"
 	"github.com/fastgox/fastgox-api-starter/src/pkg/file"
@@ -39,7 +42,7 @@ func NewServer() (*Server, error) {
 	return server, nil
 }
 
-// Start 启动服务器
+// Start 非阻塞启动服务器，在后台监听请求
 func (s *Server) Start() error {
 	addr := s.HTTP.Addr
 	logger.Info("启动服务器..")
@@ -50,13 +53,35 @@ func (s *Server) Start() error {
 	fmt.Println("==============================")
 	logger.Info("服务器地址: http://localhost%s", addr)
 	logger.Info("API文档: http://localhost%s/swagger/index.html", addr)
-	return s.HTTP.ListenAndServe()
-}
 
-// Stop 停止服务器
-func (s *Server) Stop() error {
-	logger.Info("正在关闭服务器..")
-	logger.Info("服务器已安全关闭")
+	// 非阻塞启动，让 main 可以继续监听信号
+	go func() {
+		if err := s.HTTP.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error("HTTP服务器异常退出: %v", err)
+		}
+	}()
+
 	return nil
 }
 
+// Stop 优雅关闭服务器，等待正在处理的请求完成
+func (s *Server) Stop() error {
+	timeout := config.GlobalConfig.App.ShutdownTimeout
+	if timeout <= 0 {
+		timeout = 30 // 默认30秒
+	}
+
+	logger.Info("正在优雅关闭服务器，最长等待 %d 秒...", timeout)
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeout)*time.Second)
+	defer cancel()
+
+	// Shutdown 会停止接收新请求，并等待已有请求处理完毕
+	if err := s.HTTP.Shutdown(ctx); err != nil {
+		logger.Error("服务器优雅关闭超时，强制退出: %v", err)
+		return err
+	}
+
+	logger.Info("服务器已安全关闭")
+	return nil
+}

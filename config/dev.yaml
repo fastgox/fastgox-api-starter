@@ -5,6 +5,7 @@ app:
   env: "dev"
   port: 18081
   debug: true
+  shutdown_timeout: 30  # 优雅关闭等待时间（秒）
   swagger:
     host: "/" # 为空时自动生成 localhost:8080
     scheme: "http" # 开发环境使用 http

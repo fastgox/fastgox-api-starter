@@ -2,12 +2,13 @@ package config
 
 // AppConfig 应用配置
 type AppConfig struct {
-	Name    string        `yaml:"name"`
-	Version string        `yaml:"version"`
-	Env     string        `yaml:"env"`
-	Port    int           `yaml:"port"`
-	Debug   bool          `yaml:"debug"`
-	Swagger SwaggerConfig `yaml:"swagger"`
+	Name            string        `yaml:"name"`
+	Version         string        `yaml:"version"`
+	Env             string        `yaml:"env"`
+	Port            int           `yaml:"port"`
+	Debug           bool          `yaml:"debug"`
+	ShutdownTimeout int           `yaml:"shutdown_timeout"` // 优雅关闭等待时间（秒），默认30
+	Swagger         SwaggerConfig `yaml:"swagger"`
 }
 
 // SwaggerConfig Swagger配置
