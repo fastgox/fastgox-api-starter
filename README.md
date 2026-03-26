@@ -1,92 +1,116 @@
 # FastGox API Starter
 
-一个简洁的 Go API 启动模板，采用分层架构设计，专为快速开发而优化。
+[English](README_EN.md) | 中文
+
+一个简洁的 Go API 启动模板，分层架构，开箱即用。
 
 ## 项目结构
 
 ```
-├── main.go                # 开发工具脚本
-├── cmd/
-│   └── server/
-│       └── main.go        # 服务器入口（包含 Swagger 注释）
-├── src/
-│   ├── server.go          # 服务器实现
-│   ├── config/            # 配置管理
-│   ├── core/              # 核心功能
-│   ├── models/            # 数据模型
-│   ├── repository/        # 数据访问层
-│   ├── router/            # 路由层
-│   │   ├── handle/        # 路由处理器
-│   │   └── middleware/    # 中间件
-│   └── services/          # 业务服务层
-├── scripts/               # 构建脚本
-└── docs/                  # 文档
+main.go                    # 入口
+config/                    # 配置文件（YAML）
+deploy/docker/             # Dockerfile + docker-compose
+docs/
+  db/                      # SQL 迁移文件
+  swagger/                 # Swagger 文档
+src/
+  core/                    # 核心：配置加载、数据库、Session
+  models/                  # 数据模型：entity、DTO、config
+  repository/              # 数据访问层
+  services/                # 业务逻辑层
+  router/                  # 路由 + 中间件
+  utils/                   # 工具函数
+  pkg/                     # 外部服务封装
 ```
 
 ## 特性
 
-- ✅ **自动路由注册** - 使用 init() 函数自动注册路由
-- ✅ **分层架构** - Repository → Service → Router
-- ✅ **中间件支持** - CORS、认证等中间件
-- ✅ **配置管理** - YAML 配置文件支持
-- ✅ **简洁设计** - 遵循 Go 语言简洁哲学
-- ✅ **易于扩展** - 添加新功能只需几步
+- 分层架构：Repository -> Service -> Router
+- 自动路由注册（基于 init()）
+- SQL 迁移版本管理（schema_migrations）
+- Graceful Shutdown（生产可用）
+- Swagger 文档自动生成
+- JWT 认证 + CORS 中间件
+- Docker 一键部署
+- Task 任务管理
 
 ## 快速开始
 
-### 1. 安装依赖
-```bash
-go mod tidy
-```
+### 环境要求
 
-### 2. 安装go-task（可选，推荐）
-```bash
-go install github.com/go-task/task/v3/cmd/task@latest
-```
+- Go 1.24+
+- [Task](https://taskfile.dev)（推荐）
+- Docker / Docker Compose（部署用）
 
-### 3. 启动开发服务器
+### 开发
+
 ```bash
-# 使用go-task（推荐）
+# 初始化项目
+task setup
+
+# 启动开发服务器
 task dev
 
-# 或使用传统方式
-go run main.go dev
+# 格式化代码
+task fmt
+
+# 生成 Swagger 文档
+task swagger
 ```
 
-### 4. 构建项目
+### 构建与发布
+
 ```bash
-# 使用go-task
+# 本地构建
 task build
 
-# 或使用传统方式
-go run main.go build
+# 构建发布版本（clean + fmt + tidy + swagger + build）
+task release
 ```
 
-### 5. 运行API测试
+### Docker 部署
+
 ```bash
-# 启动服务器
-task dev
+# 构建镜像
+task docker-build
 
-# 在另一个终端运行测试
-cd test
-task test-simple
+# 构建并启动（含 PostgreSQL）
+task deploy
+
+# 查看日志
+task docker-logs
+
+# 停止服务
+task docker-down
 ```
 
-## 设计理念
+### 所有可用任务
 
-- **显式优于隐式** - 所有依赖关系清晰可见
-- **简单直接** - 不使用复杂的自动注入或反射
-- **自动化注册** - 利用 Go 的 init() 机制自动注册组件
-- **易于理解** - 新手也能快速上手
+```bash
+task --list
+```
 
-## 路由初始化顺序
+## 配置
 
-项目采用基于包导入的自动初始化机制：
+配置文件位于 `config/` 目录，通过 `APP_ENV` 环境变量选择：
 
-1. `router` 包的 `init()` 创建路由组
-2. `router/handle` 包的 `init()` 注册具体路由
-3. 服务器启动时使用已配置好的路由引擎
+```bash
+APP_ENV=dev   # 加载 config/dev.yaml
+APP_ENV=prod  # 加载 config/prod.yaml
+```
+
+## 数据库迁移
+
+在 `docs/db/` 下按编号添加 SQL 文件：
+
+```
+docs/db/000001_create_users.sql
+docs/db/000002_create_sms_codes.sql
+docs/db/000003_your_migration.sql
+```
+
+启动时自动执行未运行的迁移（需配置 `auto_migrate: true`）。
 
 ## 许可证
 
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
+MIT - 查看 [LICENSE](LICENSE)
