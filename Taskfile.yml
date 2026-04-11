@@ -42,10 +42,21 @@ tasks:
       - swag init -g {{.ENTRY}} -o docs/swagger
 
   test:
-    desc: 运行测试
-    dir: test
+    desc: 运行所有单元测试
     cmds:
-      - go test -v
+      - go test -v ./test/...
+
+  test:cover:
+    desc: 运行测试并生成覆盖率报告
+    cmds:
+      - go test -v -coverprofile=coverage.out ./test/...
+      - go tool cover -html=coverage.out -o coverage.html
+      - echo "覆盖率报告已生成：coverage.html"
+
+  test:short:
+    desc: 运行快速测试（跳过集成测试）
+    cmds:
+      - go test -v -short ./test/...
 
   setup:
     desc: 初始化项目（依赖 + 文档）

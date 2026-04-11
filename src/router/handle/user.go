@@ -1,11 +1,12 @@
 package handle
 
 import (
-	"net/http"
 	"strings"
 
-	"github.com/fastgox/fastgox-api-starter/src/models/dto"
+	"github.com/fastgox/fastgox-api-starter/src/core/i18n"
+	"github.com/fastgox/fastgox-api-starter/src/core/tcp"
 	"github.com/fastgox/fastgox-api-starter/src/models/dto/request"
+	"github.com/fastgox/fastgox-api-starter/src/models/dto/response"
 	"github.com/fastgox/fastgox-api-starter/src/router"
 	"github.com/fastgox/fastgox-api-starter/src/services"
 	"github.com/gin-gonic/gin"
@@ -18,53 +19,35 @@ import (
 // @Accept json
 // @Produce json
 // @Param request body request.SendLoginSmsRequest true "发送短信请求参数"
-// @Success 200 {object} dto.Response "发送成功"
-// @Failure 400 {object} dto.Response "参数错误"
-// @Failure 500 {object} dto.Response "发送失败"
+// @Success 200 {object} response.Response "发送成功"
+// @Failure 400 {object} response.Response "参数错误"
+// @Failure 500 {object} response.Response "发送失败"
 // @Router /auth/send-login-sms [post]
 func SendLoginSms(c *gin.Context) {
 	var req request.SendLoginSmsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.Response{
-			Code:    400,
-			Message: "参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, i18n.BadRequest)
 		return
 	}
 
-	// 参数验证
 	req.Phone = strings.TrimSpace(req.Phone)
 	if len(req.Phone) != 11 {
-		c.JSON(http.StatusBadRequest, dto.Response{
-			Code:    400,
-			Message: "手机号格式不正确",
-		})
+		response.BadRequest(c, i18n.PhoneFormatError)
 		return
 	}
 
-	// 调用服务发送短信
 	result, err := services.UserSvc.SendLoginSms(req.Phone)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.Response{
-			Code:    500,
-			Message: "发送短信失败: " + err.Error(),
-		})
+		response.InternalError(c, err.Error())
 		return
 	}
 
 	if !result.Success {
-		c.JSON(http.StatusBadRequest, dto.Response{
-			Code:    400,
-			Message: result.Message,
-		})
+		response.BadRequest(c, result.Message)
 		return
 	}
 
-	c.JSON(http.StatusOK, dto.Response{
-		Code:    200,
-		Message: result.Message,
-		Data:    result,
-	})
+	response.OKMsg(c, i18n.SmsSendSuccess, result)
 }
 
 // LoginWithSms 使用短信验证码登录
@@ -74,72 +57,63 @@ func SendLoginSms(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body request.LoginWithSmsRequest true "登录请求参数"
-// @Success 200 {object} dto.Response "登录成功"
-// @Failure 400 {object} dto.Response "参数错误"
-// @Failure 500 {object} dto.Response "登录失败"
+// @Success 200 {object} response.Response "登录成功"
+// @Failure 400 {object} response.Response "参数错误"
+// @Failure 500 {object} response.Response "登录失败"
 // @Router /auth/login-with-sms [post]
 func LoginWithSms(c *gin.Context) {
 	var req request.LoginWithSmsRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, dto.Response{
-			Code:    400,
-			Message: "参数错误: " + err.Error(),
-		})
+		response.BadRequest(c, i18n.BadRequest)
 		return
 	}
 
-	// 参数验证
 	req.Phone = strings.TrimSpace(req.Phone)
 	req.Code = strings.TrimSpace(req.Code)
 
 	if len(req.Phone) != 11 {
-		c.JSON(http.StatusBadRequest, dto.Response{
-			Code:    400,
-			Message: "手机号格式不正确",
-		})
+		response.BadRequest(c, i18n.PhoneFormatError)
 		return
 	}
 
 	if len(req.Code) != 4 {
-		c.JSON(http.StatusBadRequest, dto.Response{
-			Code:    400,
-			Message: "验证码格式不正确",
-		})
+		response.BadRequest(c, i18n.CodeFormatError)
 		return
 	}
 
-	// 调用服务进行登录
 	result, err := services.UserSvc.LoginWithSms(req.Phone, req.Code)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, dto.Response{
-			Code:    500,
-			Message: "登录失败: " + err.Error(),
-		})
+		response.InternalError(c, err.Error())
 		return
 	}
 
 	if !result.Success {
-		c.JSON(http.StatusBadRequest, dto.Response{
-			Code:    400,
-			Message: result.Message,
-		})
+		response.BadRequest(c, result.Message)
 		return
 	}
 
-	// 设置响应头中的令牌
 	if result.Token != "" {
 		c.Header("Authorization", "Bearer "+result.Token)
 	}
 
-	c.JSON(http.StatusOK, dto.Response{
-		Code:    200,
-		Message: result.Message,
-		Data:    result,
-	})
+	response.OKMsg(c, i18n.LoginSuccess, result)
 }
 
 func init() {
 	// 注册用户认证路由（公开接口）
 	router.PublicRouter.POST("/auth/send-login-sms", SendLoginSms)
 	router.PublicRouter.POST("/auth/login-with-sms", LoginWithSms)
+
+	// TCP 路由
+	router.TCPRouter.Handle("echo", TCPEcho)
+}
+
+// ===== TCP Handlers =====
+
+// TCPEcho echo测试
+func TCPEcho(ctx *tcp.Context) error {
+	response.OK(ctx, map[string]any{
+		"echo": string(ctx.Msg.Data),
+	})
+	return nil
 }

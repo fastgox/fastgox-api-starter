@@ -7,5 +7,5 @@ type Config struct {
 	JWT      JWTConfig     `yaml:"jwt"`
 	SmsCode  SmsCodeConfig `yaml:"sms-code"`
 	File     FileConfig    `yaml:"file"`
+	TCP      TCPConfig     `yaml:"tcp"`
 }
-

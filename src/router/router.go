@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/fastgox/fastgox-api-starter/src/core/config"
+	"github.com/fastgox/fastgox-api-starter/src/core/i18n"
+	"github.com/fastgox/fastgox-api-starter/src/core/tcp"
 	"github.com/fastgox/fastgox-api-starter/src/router/middleware"
 	"github.com/fastgox/utils/logger"
 	"github.com/gin-gonic/gin"
@@ -14,16 +16,23 @@ import (
 )
 
 var (
+	// HTTP
 	AuthRouter   *gin.RouterGroup
 	PublicRouter *gin.RouterGroup
 	OpenRouter   *gin.RouterGroup
 	Engine       *gin.Engine
+
+	// TCP
+	TCPRouter *tcp.Router
 )
 
 // init 包初始化时创建引擎和路由组
 func init() {
-	Engine = gin.Default() // 使用Default()自动包含Logger和Recovery中间件
-	Engine.Use(middleware.CORSMiddleware())
+	// 初始化 i18n
+	i18n.Init()
+
+	Engine = gin.New()
+	Engine.Use(gin.Logger(), middleware.RecoveryMiddleware(), middleware.CORSMiddleware(), middleware.I18nMiddleware())
 
 	// 加载HTML模板（支持 layouts 公共模板）
 	loadTemplates()
@@ -41,6 +50,10 @@ func init() {
 
 	// Swagger 文档路由
 	Engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	// ========== TCP 路由 ==========
+	TCPRouter = tcp.NewRouter()
+	TCPRouter.Use(tcp.Recovery(), tcp.Logger())
 }
 
 // loadTemplates 加载模板文件，支持 layouts 继承
@@ -97,4 +110,3 @@ func setupStaticFiles() {
 		Engine.Static(fileConfig.URLPrefix, fileConfig.UploadPath)
 	}
 }
-

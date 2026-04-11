@@ -8,17 +8,20 @@ import (
 	"time"
 
 	"github.com/fastgox/fastgox-api-starter/src/core/config"
+	"github.com/fastgox/fastgox-api-starter/src/core/tcp"
 	"github.com/fastgox/fastgox-api-starter/src/pkg/file"
 	"github.com/fastgox/fastgox-api-starter/src/router"
 	_ "github.com/fastgox/fastgox-api-starter/src/router/handle"
 	"github.com/fastgox/utils/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/panjf2000/gnet/v2"
 )
 
 // Server 应用服务器
 type Server struct {
 	Router *gin.Engine
 	HTTP   *http.Server
+	TCP    *tcp.Server
 }
 
 // NewServer 创建新的服务器实例
@@ -38,6 +41,16 @@ func NewServer() (*Server, error) {
 		Handler: router.Engine,
 	}
 
+	// 创建TCP服务器
+	tcpCfg := config.GlobalConfig.TCP
+	if tcpCfg.Enabled {
+		opts := []gnet.Option{
+			gnet.WithMulticore(true),
+			gnet.WithReusePort(true),
+		}
+		server.TCP = tcp.NewServer(tcpCfg.Port, tcpCfg.MaxMessageSize, tcpCfg.HeartbeatTimeout, router.TCPRouter, opts...)
+	}
+
 	logger.Info("服务器实例创建完成")
 	return server, nil
 }
@@ -50,6 +63,9 @@ func (s *Server) Start() error {
 	fmt.Println("服务已启动:")
 	fmt.Printf("  API地址:    http://localhost%s\n", addr)
 	fmt.Printf("  Swagger文档: http://localhost%s/swagger/index.html\n", addr)
+	if s.TCP != nil {
+		fmt.Printf("  TCP地址:    tcp://localhost:%d\n", config.GlobalConfig.TCP.Port)
+	}
 	fmt.Println("==============================")
 	logger.Info("服务器地址: http://localhost%s", addr)
 	logger.Info("API文档: http://localhost%s/swagger/index.html", addr)
@@ -60,6 +76,15 @@ func (s *Server) Start() error {
 			logger.Error("HTTP服务器异常退出: %v", err)
 		}
 	}()
+
+	// 启动TCP服务器
+	if s.TCP != nil {
+		go func() {
+			if err := s.TCP.Start(); err != nil {
+				logger.Error("TCP服务器异常退出: %v", err)
+			}
+		}()
+	}
 
 	return nil
 }
@@ -80,6 +105,13 @@ func (s *Server) Stop() error {
 	if err := s.HTTP.Shutdown(ctx); err != nil {
 		logger.Error("服务器优雅关闭超时，强制退出: %v", err)
 		return err
+	}
+
+	// 关闭TCP服务器
+	if s.TCP != nil {
+		if err := s.TCP.Stop(); err != nil {
+			logger.Error("TCP服务器关闭失败: %v", err)
+		}
 	}
 
 	logger.Info("服务器已安全关闭")

@@ -1,0 +1,59 @@
+# 应用配置
+app:
+  name: "FastGox API Starter"
+  version: "1.0.0"
+  env: "prod"
+  port: 18081
+  debug: false
+  shutdown_timeout: 30  # 优雅关闭等待时间（秒）
+  swagger:
+    host: ""           # 生产环境填写实际域名，如 api.example.com
+    scheme: "https"    # 生产环境使用 https
+    base_path: "/api/v1"
+
+# 数据库配置 - PostgreSQL、mysql
+database:
+  driver: "postgres"
+  host: "${DB_HOST}"
+  port: 5432
+  user: "${DB_USER}"
+  password: "${DB_PASSWORD}"
+  dbname: "${DB_NAME}"
+  sslmode: "require"
+  timezone: "Asia/Shanghai"
+  max_open_conns: 200
+  max_idle_conns: 20
+  log_level: "warn"
+  auto_migrate: false         # 生产环境建议手动迁移
+  migrations_dir: "docs/db"
+
+# JWT配置
+jwt:
+  secret_key: "${JWT_SECRET}"
+
+# 短信验证码配置
+sms-code:
+  code-length: 6       # 生产环境使用6位验证码
+  code-expire-time: 5
+  daily-limit: 10
+  interval-limit: 1    # 生产环境开启60秒发送间隔
+  recent-limit: 5
+  recent-minutes: 60
+  whitelist: []         # 生产环境清空白名单
+  whitelist-code: ""
+
+# TCP服务配置
+tcp:
+  enabled: true
+  port: 18082
+  max_connections: 5000
+  read_timeout: 120
+  write_timeout: 10
+  max_message_size: 65536
+  heartbeat_timeout: 300   # 心跳超时(秒)，5分钟无消息断开
+
+# 文件配置
+file:
+  max_size: 10485760  # 10MB
+  max_count: 5
+  allowed_extensions: [".jpg", ".jpeg", ".png", ".gif", ".pdf", ".doc", ".docx", ".txt"]

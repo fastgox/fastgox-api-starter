@@ -1,0 +1,68 @@
+# ===== 通用 =====
+- id: "success"
+  translation: "操作成功"
+
+- id: "server_error"
+  translation: "服务器内部错误"
+
+# ===== 参数校验 =====
+- id: "bad_request"
+  translation: "请求参数错误"
+
+- id: "param_error"
+  translation: "参数错误: {{.Detail}}"
+
+- id: "phone_format_error"
+  translation: "手机号格式不正确"
+
+- id: "code_format_error"
+  translation: "验证码格式不正确"
+
+# ===== 认证 =====
+- id: "unauthorized"
+  translation: "未授权"
+
+- id: "forbidden"
+  translation: "禁止访问"
+
+- id: "token_missing"
+  translation: "缺少认证token"
+
+- id: "token_format_error"
+  translation: "token格式错误"
+
+- id: "token_empty"
+  translation: "token不能为空"
+
+- id: "token_invalid"
+  translation: "token无效: {{.Detail}}"
+
+# ===== 资源 =====
+- id: "not_found"
+  translation: "资源不存在"
+
+- id: "too_many_requests"
+  translation: "请求过于频繁"
+
+# ===== 用户 / 短信 =====
+- id: "sms_send_success"
+  translation: "验证码发送成功"
+
+- id: "sms_send_failed"
+  translation: "发送短信失败: {{.Detail}}"
+
+- id: "login_success"
+  translation: "登录成功"
+
+- id: "login_failed"
+  translation: "登录失败: {{.Detail}}"
+
+# ===== 文件 =====
+- id: "file_required"
+  translation: "请选择要上传的文件"
+
+- id: "file_upload_success"
+  translation: "文件上传成功"
+
+- id: "file_upload_failed"
+  translation: "文件上传失败: {{.Detail}}"

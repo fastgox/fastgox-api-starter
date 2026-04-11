@@ -1,0 +1,68 @@
+# ===== General =====
+- id: "success"
+  translation: "Success"
+
+- id: "server_error"
+  translation: "Internal server error"
+
+# ===== Validation =====
+- id: "bad_request"
+  translation: "Bad request"
+
+- id: "param_error"
+  translation: "Invalid parameter: {{.Detail}}"
+
+- id: "phone_format_error"
+  translation: "Invalid phone number format"
+
+- id: "code_format_error"
+  translation: "Invalid verification code format"
+
+# ===== Auth =====
+- id: "unauthorized"
+  translation: "Unauthorized"
+
+- id: "forbidden"
+  translation: "Forbidden"
+
+- id: "token_missing"
+  translation: "Authentication token is missing"
+
+- id: "token_format_error"
+  translation: "Invalid token format"
+
+- id: "token_empty"
+  translation: "Token cannot be empty"
+
+- id: "token_invalid"
+  translation: "Invalid token: {{.Detail}}"
+
+# ===== Resource =====
+- id: "not_found"
+  translation: "Resource not found"
+
+- id: "too_many_requests"
+  translation: "Too many requests"
+
+# ===== User / SMS =====
+- id: "sms_send_success"
+  translation: "Verification code sent"
+
+- id: "sms_send_failed"
+  translation: "Failed to send SMS: {{.Detail}}"
+
+- id: "login_success"
+  translation: "Login successful"
+
+- id: "login_failed"
+  translation: "Login failed: {{.Detail}}"
+
+# ===== File =====
+- id: "file_required"
+  translation: "Please select a file to upload"
+
+- id: "file_upload_success"
+  translation: "File uploaded successfully"
+
+- id: "file_upload_failed"
+  translation: "File upload failed: {{.Detail}}"
